@@ -18,15 +18,39 @@ def gerar_kml():
     kml = simplekml.Kml()
 
     for feature in data['features']:
-        coords = feature['geometry']['coordinates']
         props = feature['properties']
-        nome = props.get("NOME", "Sem nome")
-        tipo = props.get("TIPO", "Desconhecido")
-        datahora = props.get("DATA_HORA_ALERTA", "")
-        descricao = f"Tipo: {tipo}\nData/Hora: {datahora}"
+        lat = props.get("Latitude")
+        lon = props.get("Longitude")
 
-        pnt = kml.newpoint(name=nome, coords=[(coords[0], coords[1])])
+        # Se não houver coordenadas, ignorar
+        if lat is None or lon is None:
+            continue
+
+        natureza = props.get("Natureza", "Sem natureza")
+        estado = props.get("EstadoOcorrencia", "Desconhecido")
+        concelho = props.get("Concelho", "")
+        freguesia = props.get("Freguesia", "")
+        data_inicio = props.get("DataInicioOcorrencia", "")
+        operacionais = props.get("Operacionais", 0)
+        meios_terrestres = props.get("NumeroMeiosTerrestresEnvolvidos", 0)
+        meios_aereos = props.get("NumeroMeiosAereosEnvolvidos", 0)
+
+        descricao = f"""<![CDATA[
+        <b>{natureza}</b><br/>
+        Estado: {estado}<br/>
+        Concelho: {concelho}<br/>
+        Freguesia: {freguesia}<br/>
+        Data/Hora Início: {data_inicio}<br/>
+        Operacionais: {operacionais}<br/>
+        Meios Terrestres: {meios_terrestres}<br/>
+        Meios Aéreos: {meios_aereos}
+        ]]>"""
+
+        pnt = kml.newpoint(name=natureza, coords=[(lon, lat)])
         pnt.description = descricao
         pnt.style.iconstyle.icon.href = "http://maps.google.com/mapfiles/kml/shapes/firedept.png"
 
     return Response(kml.kml(), mimetype='application/vnd.google-earth.kml+xml')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
