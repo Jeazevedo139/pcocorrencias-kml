@@ -12,18 +12,18 @@ def gerar_kml():
         "where": "0=0",
         "outFields": "*"
     }
+
     resp = requests.get(url, params=params)
     data = resp.json()
 
     kml = simplekml.Kml()
 
-    for feature in data['features']:
-        props = feature['properties']
+    for feature in data.get('features', []):
+        props = feature.get('properties', {})
         lat = props.get("Latitude")
         lon = props.get("Longitude")
 
-        # Se não houver coordenadas, ignorar
-        if lat is None or lon is None:
+        if not lat or not lon:
             continue
 
         natureza = props.get("Natureza", "Sem natureza")
